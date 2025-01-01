@@ -70,7 +70,7 @@ body, html {
 
 .left-half,
 .right-half {
-	width: calc(50% - 1px);
+	width: calc(51% - 1px);
 	height: 100%;
 	display: flex;
 	justify-content: center;
@@ -635,6 +635,13 @@ body, html {
 	}
 	
 	.coordinate-display {
+        display: none;
+    }
+}
+
+@media (max-height: 585px) {
+    #credits-button,
+    #new-game-button {
         display: none;
     }
 }
