@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Geogeussr</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .background-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 107%;
+            height: 107%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .background-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(10px);
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .container {
+            width: 80vw;
+            height: 60vh;
+            background: rgba(0, 0, 0, 1);
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .left-half,
+        .right-half {
+            width: calc(50% - 1px);
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .left-half {
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+
+        .right-half {
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            background-color: #333;
+        }
+
+        .image-container {
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            border-radius: 13px;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .debug-info {
+            font-size: 0px;
+            color: #ccc;
+            margin-top: 10px;
+        }
+        
+        .title {
+            font-size: 5.5em;
+            color: #fff;
+            margin: 20px 0 10px 0;
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            color: #ccc;
+            margin: 0 0 20px 0;
+        }
+
+        .placeholder {
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            border-radius: 13px;
+            overflow: hidden;
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container">
+        <img src="background.jpg" alt="Background Image">
+    </div>
+    <div class="content-container">
+        <div class="title">Minecraft Geogeussr</div>
+        <div class="subtitle">Can you find where you are in a Minecraft world?</div>
+        <div class="container">
+            <div class="left-half">
+                <div class="image-container">
+                    <img id="randomImage" alt="Random Location">
+                </div>
+            </div>
+            <div class="right-half">
+                <div class="placeholder"></div>
+            </div>
+        </div>
+        <div id="debugInfo" class="debug-info"></div>
+    </div>
+
+    <script>
+        async function loadRandomImage() {
+            try {
+                // Fetch the JSON data
+                const response = await fetch('base.json');
+                const data = await response.json();
+                
+                // Generate random number between 1 and 10
+                const randomId = Math.floor(Math.random() * 10) + 1;
+                
+                // Find the corresponding image data
+                const imageData = data.find(item => item.id === randomId);
+                
+                if (imageData) {
+                    // Set the image source
+                    const imageElement = document.getElementById('randomImage');
+                    imageElement.src = imageData.path;
+                    
+                    // Store the coordinates and description (might be useful later)
+                    imageElement.dataset.coords = JSON.stringify(imageData.coords);
+                    imageElement.dataset.desc = imageData.desc;
+                    
+                    document.getElementById('debugInfo').textContent = 'Image loaded successfully.';
+                } else {
+                    throw new Error('Image data not found');
+                }
+            } catch (error) {
+                document.getElementById('debugInfo').textContent = `Error loading image: ${error.message}`;
+                console.error('Error loading image:', error);
+            }
+        }
+
+        // Load a random image when the page loads
+        window.addEventListener('load', loadRandomImage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Geogeussr</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+   
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100..900&family=Noto+Sans+Math&family=Oxanium:wght@200..800&display=swap" rel="stylesheet">
+	<style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+        }
+		
+		.title {
+			font-size: 5.5em;
+			color: #fff;
+			margin: 20px 0 10px 0;
+			font-family: "Lexend Exa", serif;
+			font-optical-sizing: auto;
+			font-weight: 500;
+			font-style: normal;
+			text-shadow: 2px 2px #558ABB;
+        }
+
+        .subtitle {
+			font-size: 1.5em;
+			color: #ccc;
+			margin: 0 0 20px 0;
+			font-family: "Oxanium", serif;
+			font-optical-sizing: auto;
+			font-weight: 300;
+			font-style: normal;
+        }
+
+        .background-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 107%;
+            height: 107%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .background-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(10px);
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .container {
+            width: 90vw;
+            height: 70vh;
+            background: rgba(0, 0, 0, 1);
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .left-half,
+        .right-half {
+            width: calc(50% - 1px);
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+			background: #101a24;
+        }
+
+        .left-half {
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			border-right: none;
+		}
+
+		.right-half {
+			border-top-right-radius: 20px;
+			border-bottom-right-radius: 20px;
+			border-left: none;
+		}
+
+        .image-container {
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            border-radius: 13px;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #map {
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            border-radius: 13px;
+            background-color: #000000;
+        }
+
+        .coordinate-display, 
+        .guess-button, 
+        .result-display, 
+        .marker-coordinate-display {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .coordinate-display {
+            top: 10px;
+        }
+
+        .guess-button {
+            bottom: 68px;
+            cursor: pointer;
+        }
+
+        .result-display {
+            bottom: 10px;
+        }
+
+        .next-round-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+            z-index: 1000;
+        }
+
+        .game-stats {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .final-score-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .final-score-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #e0e0e0;
+			font-family: "Oxanium", serif;
+			  font-optical-sizing: auto;
+			  font-weight: 400;
+			  font-style: normal;
+        }
+
+        .play-again-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+		
+		.nearest-neighbor {
+			image-rendering: -moz-crisp-edges;
+			image-rendering: -webkit-crisp-edges;
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+		}
+
+		.play-again-button,
+		.coordinate-display, 
+		.guess-button, 
+		.result-display, 
+		.marker-coordinate-display, 
+		.next-round-button, 
+		.game-stats {
+			margin: 10px;
+			font-family: "Oxanium", serif;
+			font-optical-sizing: auto;
+			font-weight: 600;
+			font-style: normal;
+		}
+		
+		.start-menu-overlay,
+		.start-menu-content,
+		.start-menu-content h1,
+		.start-game-button {
+			font-family: "Oxanium", serif;
+			font-optical-sizing: auto;
+			font-weight: 600;
+			font-style: normal;
+		}
+		
+		.start-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        .start-menu-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #e0e0e0;
+        }
+        .start-menu-content h1 {
+            margin-bottom: 20px;
+        }
+        .start-game-button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+		
+    </style>
+</head>
+<body>
+    <div class="start-menu-overlay" id="start-menu">
+        <div class="start-menu-content">
+            <h1>Welcome to SIMPS SMP Geoguessr</h1>
+            <p>Made by: BouncingElf10</p>
+            <button class="start-game-button" id="start-game-button">Start Game</button>
+        </div>
+    </div>
+
+    <div class="background-container">
+        <img src="background.jpg" alt="Background Image">
+    </div>
+    <div class="content-container">
+        <div class="title">SIMPS SMP Geoguessr</div>
+        <div class="container">
+            <div class="left-half">
+                <div class="image-container">
+                    <img id="randomImage" alt="Random Location">
+                </div>
+            </div>
+            <div class="right-half">
+                <div id="map"></div>
+                <div class="coordinate-display" id="coordinate-display">X: , Z: </div>
+                <button class="guess-button disabled" id="guess-button" disabled>Guess</button>
+                <div class="result-display" id="result-display"></div>
+                <button class="next-round-button" id="next-round-button">Next Round</button>
+                <div class="game-stats" id="game-stats">Round: 1/5</div>
+            </div>
+        </div>
+    </div>
+    <div class="final-score-overlay" id="final-score-overlay">
+        <div class="final-score-content">
+            <h2>Game Complete!</h2>
+            <p id="final-score-text"></p>
+            <button class="play-again-button" onclick="startNewGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<script src="https://unpkg.com/leaflet-smooth-wheel-zoom@1.0.1/dist/smooth-wheel-zoom.js"></script>
+    <script>
+        let currentRound = 1;
+        const TOTAL_ROUNDS = 5;
+        let scores = [];
+        let usedImageIds = new Set();
+        let map;
+        let guessMarker = null;
+        let polyline = null;
+        let currentImageData = null;
+        let actualMarker = null;
+        let imageOverlay = null;
+		let hasGuessedThisRound = false;
+
+        function initializeMap() {
+			map = L.map('map', {
+				crs: L.CRS.Simple,
+				minZoom: -3,
+				maxZoom: 4,
+				smoothWheelZoom: true,          // Enable the plugin
+				smoothSensitivity: 10,           // Zoom sensitivity
+				maxBoundsViscosity: 1.0
+			});
+
+			// Add the smooth wheel zoom handler
+			map.addHandler('smoothWheelZoom', L.Map.SmoothWheelZoom);
+
+			map.on('mousemove', function(e) {
+				const x = Math.round(e.latlng.lng);
+				const z = Math.round(e.latlng.lat);
+				document.getElementById('coordinate-display').innerText = `X: ${x + (1491 + 45)}, Z: ${-z + (9047 - 88)}`;
+			});
+
+			map.on('click', function(e) {
+				if (hasGuessedThisRound) return; // Prevent new guesses after guessing
+				
+				if (guessMarker) {
+					map.removeLayer(guessMarker);
+				}
+				if (polyline) {
+					map.removeLayer(polyline);
+				}
+				
+				guessMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+				
+				const guessButton = document.getElementById('guess-button');
+				guessButton.classList.remove('disabled');
+				guessButton.disabled = false;
+			});
+
+            map.on('zoom', function() {
+				const zoomLevel = map.getZoom();
+				const imageLayer = document.querySelector('#map');
+				if (imageLayer) {
+					if (zoomLevel > 0) {  // Adjust this threshold as needed
+						imageLayer.classList.add('nearest-neighbor');
+					} else {
+						imageLayer.classList.remove('nearest-neighbor');
+					}
+				}
+			});
+
+            // Load and add the map image
+            const img = new Image();
+            img.onload = function() {
+                const width = img.width;
+                const height = img.height;
+                
+                const bounds = [
+                    [-height/2, -width/2],
+                    [height/2, width/2]
+                ];
+                
+                if (imageOverlay) {
+                    map.removeLayer(imageOverlay);
+                }
+                
+                imageOverlay = L.imageOverlay('/map.png', bounds).addTo(map);
+                map.setView([0, 0], 0);
+                map.fitBounds(bounds);
+            };
+            img.src = '/map.png';
+
+            return map;
+        }
+
+        // Rest of the functions remain the same
+        function updateGameStats() {
+            const totalScore = scores.reduce((sum, score) => sum + score, 0);
+            document.getElementById('game-stats').innerText = 
+                `Round: ${currentRound}/${TOTAL_ROUNDS} | Total Score: ${totalScore}`;
+        }
+
+        function showFinalScore() {
+            const totalScore = scores.reduce((sum, score) => sum + score, 0);
+            const averageScore = (totalScore / TOTAL_ROUNDS).toFixed(1);
+            
+            let scoreBreakdown = scores.map((score, index) => 
+                `Round ${index + 1}: ${score} points`).join('\n');
+            
+            document.getElementById('final-score-text').innerHTML = 
+                `Total Score: ${totalScore} points<br>
+                Average Score: ${averageScore} points<br><br>
+                ${scoreBreakdown.replace(/\n/g, '<br>')}`;
+            
+            document.getElementById('final-score-overlay').style.display = 'flex';
+        }
+		
+
+        function startNewGame() {
+			currentRound = 1;
+			hasGuessedThisRound = false;
+			scores = [];
+			usedImageIds.clear();
+			document.getElementById('final-score-overlay').style.display = 'none';
+			resetMap();
+			loadRandomImage();
+			updateGameStats();
+		}
+
+        function resetMap() {
+            if (guessMarker) map.removeLayer(guessMarker);
+            if (polyline) map.removeLayer(polyline);
+            if (actualMarker) map.removeLayer(actualMarker);
+            
+            guessMarker = null;
+            polyline = null;
+            actualMarker = null;
+            
+            const guessButton = document.getElementById('guess-button');
+            guessButton.classList.add('disabled');
+            guessButton.disabled = true;
+            
+            document.getElementById('next-round-button').style.display = 'none';
+            document.getElementById('result-display').innerText = '';
+        }
+
+        async function loadRandomImage() {
+            try {
+                const response = await fetch('base.json');
+                const data = await response.json();
+                
+                let availableIds = Array.from({length: 10}, (_, i) => i + 1)
+                    .filter(id => !usedImageIds.has(id));
+                
+                if (availableIds.length === 0) {
+                    availableIds = Array.from({length: 10}, (_, i) => i + 1);
+                    usedImageIds.clear();
+                }
+                
+                const randomId = availableIds[Math.floor(Math.random() * availableIds.length)];
+                usedImageIds.add(randomId);
+                
+                currentImageData = data.find(item => item.id === randomId);
+                
+                if (currentImageData) {
+                    const imageElement = document.getElementById('randomImage');
+                    imageElement.src = currentImageData.path;
+                }
+            } catch (error) {
+                console.error('Error loading image:', error);
+            }
+        }
+
+        function guessHandler() {
+			if (!guessMarker || !currentImageData || hasGuessedThisRound) return;
+			
+			hasGuessedThisRound = true;
+
+            const guessCoords = guessMarker.getLatLng();
+            
+            const guessX = Math.round(guessCoords.lng + (1491 + 45));
+            const guessZ = Math.round(-guessCoords.lat + (9047 - 88));
+            
+            const targetX = currentImageData.coords.x;
+            const targetZ = currentImageData.coords.y;
+            
+            const dx = guessX - targetX;
+            const dz = guessZ - targetZ;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            
+            const score = Math.max(0, Math.floor(100 - (distance / 2)));
+            scores.push(score);
+
+            document.getElementById('result-display').innerText = 
+                `Score: ${score}\nDistance: ${Math.round(distance)} blocks`;
+
+            const mapTargetX = targetX - (1491 + 45);
+            const mapTargetZ = -(targetZ - (9047 - 88));
+
+            if (polyline) map.removeLayer(polyline);
+            
+            polyline = L.polyline([
+                [guessCoords.lat, guessCoords.lng],
+                [mapTargetZ, mapTargetX]
+            ], {color: 'red'}).addTo(map);
+
+            if (actualMarker) map.removeLayer(actualMarker);
+            
+            actualMarker = L.marker([mapTargetZ, mapTargetX], {
+                icon: L.divIcon({
+                    className: 'actual-location-marker',
+                    html: '📍',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 20]
+                })
+            }).addTo(map);
+
+            const guessButton = document.getElementById('guess-button');
+            guessButton.classList.add('disabled');
+            guessButton.disabled = true;
+
+            updateGameStats();
+
+            if (currentRound < TOTAL_ROUNDS) {
+                document.getElementById('next-round-button').style.display = 'block';
+            } else {
+                setTimeout(showFinalScore, 1500);
+            }
+        }
+
+        function nextRound() {
+			currentRound++;
+			hasGuessedThisRound = false;
+			resetMap();
+			loadRandomImage();
+			updateGameStats();
+		}
+		
+		// Hide start menu and initialize game
+        document.getElementById('start-game-button').addEventListener('click', function() {
+            document.getElementById('start-menu').style.display = 'none';
+        });
+
+
+        window.onload = async function() {
+            map = initializeMap();
+            
+			document.getElementById('start-menu').style.display = 'flex';
+			
+            const img = new Image();
+            img.onload = function() {
+                const width = img.width;
+                const height = img.height;
+                
+                const bounds = [
+                    [-height/2, -width/2],
+                    [height/2, width/2]
+                ];
+                
+                const imageOverlay = L.imageOverlay('/map.png', bounds).addTo(map);
+                map.setView([0, 0], 0);
+                map.fitBounds(bounds);
+            };
+            img.src = '/map.png';
+            
+            document.getElementById('guess-button').addEventListener('click', guessHandler);
+            document.getElementById('next-round-button').addEventListener('click', nextRound);
+            
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space') {
+                    const guessButton = document.getElementById('guess-button');
+                    if (!guessButton.disabled) {
+                        event.preventDefault();
+                        guessButton.click();
+                    }
+                } else if (event.code === 'Enter') {
+                    const nextRoundButton = document.getElementById('next-round-button');
+                    if (nextRoundButton.style.display === 'block') {
+                        event.preventDefault();
+                        nextRoundButton.click();
+                    }
+                }
+            });
+
+            await loadRandomImage();
+            updateGameStats();
+        };
+    </script>
+</body>
+</html>

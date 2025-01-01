@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPS SMP Geoguessr</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+   
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100..900&family=Noto+Sans+Math&family=Oxanium:wght@200..800&display=swap" rel="stylesheet">
+	
+	<link rel="stylesheet" href="style.css">
+	<style>
+
+    </style>
+</head>
+<body>
+    <body>
+    <div class="start-menu-overlay" id="start-menu">
+        <div class="start-menu-content">
+            <h1>Welcome to SIMPS SMP Geoguessr</h1>
+            <p>Developed by: <a href="https://www.youtube.com/@BouncingElf10" target="_blank">BouncingElf10</a>  |  Images taken by: <a href="https://www.youtube.com/@tj_giggles" target="_blank">TJ_Giggles</a></p>
+            <button class="start-game-button" id="start-game-button">Start Game</button>
+        </div>
+    </div>
+
+    <div class="background-container">
+		<img alt="Background Image">
+	</div>
+    <div class="content-container">
+        <div class="title">SIMPS SMP Geoguessr</div>
+        <div class="container">
+            <div class="left-half">
+                <div class="image-container">
+                    <img id="randomImage" alt="Random Location">
+                </div>
+            </div>
+            <div class="right-half">
+                <div id="map"></div>
+                <div class="coordinate-display" id="coordinate-display">X: , Z: </div>
+                <button class="guess-button disabled" id="guess-button" disabled>Guess</button>
+                <div class="result-display" id="result-display"></div>
+                <button class="next-round-button" id="next-round-button">Next Round</button>
+                <div class="game-stats" id="game-stats">Round: 1/5</div>
+				<div id="countdown-timer" class="timer-display">Time Left: 30.000</div>
+            </div>
+        </div>
+    </div>
+	
+	<div id="button-container">
+		<!-- <button id="leaderboard-button" onclick="showLeaderboard()">Leaderboard</button> -->
+		<button id="new-game-button" onclick="startNewGame()">New Game</button>
+	</div>
+
+	<!--
+	<div id="leaderboard-popup" class="credits-popup">
+		<div class="credits-content">
+			<h2>Leaderboard</h2>
+			<table id="leaderboard-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+				<thead>
+					<tr>
+						<th onclick="sortLeaderboard('name')">Name <span id="sort-indicator-name"> </span></th>
+						<th onclick="sortLeaderboard('score')">Score <span id="sort-indicator-score"> </span></th>
+						<th onclick="sortLeaderboard('time')">Time <span id="sort-indicator-time"> </span></th>
+						<th onclick="sortLeaderboard('mix')">Mix <span id="sort-indicator-mix">▼</span></th>
+						<th onclick="sortLeaderboard('date')">Date <span id="sort-indicator-date"> </span></th>
+					</tr>
+				</thead>
+				<tbody id="leaderboard-content">
+				
+				</tbody>
+			</table>
+
+			<button class="credits-close-button" onclick="closeLeaderboard()">Close</button>
+		</div>
+	</div>
+	-->
+
+    <!-- Final Score Overlay -->
+   <div class="final-score-overlay" id="final-score-overlay">
+		<div class="final-score-content">
+			<h2>Game Complete!</h2>
+			<p id="final-score-text"></p>
+			<!--
+			<div style="display: flex; align-items: center; gap: 10px;">
+				<input type="text" id="player-name" placeholder="Your Name" required>
+				<button class="submit-score-button" id="submit-score-button" onclick="submitFinalScore()">Submit Score</button>
+			</div>
+			-->
+			<button class="play-again-button" onclick="startNewGame()">Play Again</button>
+		</div>
+	</div>
+
+    <!-- Image Popup -->
+    <div class="image-popup" id="image-popup">
+        <span class="image-popup-close" id="image-popup-close">&times;</span>
+        <img id="popup-image" src="" alt="Popup Image">
+    </div>
+
+    <!-- Social Media Links -->
+	<div class="social-media-links">
+		<a href="https://github.com/BouncingElf10" target="_blank" title="">
+			<img src="assets/github-icon.png" alt="GitHub" class="social-icon">
+		</a>
+		<a href="https://modrinth.com/user/BouncingElf10" target="_blank" title="">
+			<img src="assets/modrinth-icon.ico" alt="Modrinth" class="social-icon">
+		</a>
+	</div>
+
+    <!-- Credits and Legal Info Button -->
+    <button id="credits-button" onclick="showCredits()">Credits & Legal Info</button>
+
+    <!-- Credits/Legal Popup -->
+	<div class="credits-popup" id="credits-popup">
+		<div class="credits-content">
+			<h2>Credits & Legal</h2>
+			<p>
+				Developed by <a href="https://www.youtube.com/@BouncingElf10" target="_blank">BouncingElf10</a><br>
+				Images taken by <a href="https://www.youtube.com/@tj_giggles" target="_blank">TJ_Giggles</a><br>
+				Backround Images taken by <a href="https://www.youtube.com/@foundkio" target="_blank">4kio</a><br>
+				<br>
+				My website <b>does not</b> collect any personal information, store cookies, or track your activities. We do not gather any data about you or your device, and we do not share any information with third parties. You can enjoy playing without worrying about data collection or privacy concerns.
+			</p>
+			<button class="credits-close-button" onclick="closeCreditsPopup()">Close</button>
+		</div>
+	</div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<script src="https://unpkg.com/leaflet-smooth-wheel-zoom@1.0.1/dist/smooth-wheel-zoom.js"></script>
+	<script src="scripts.js"></script>
+    <script>
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Map Guessing Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #map {
+            height: 90vh;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            background-color: #000000;
+        }
+        .coordinate-display, .guess-button, .result-display, .marker-coordinate-display {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .coordinate-display {
+            top: 10px;
+            left: 55%;
+        }
+        .guess-button {
+            top: 50px;
+        }
+        .result-display {
+            top: 90px;
+        }
+        .marker-coordinate-display {
+            top: 10px;
+            left: 45%;
+        }
+        .nearest-neighbor {
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+        .leaflet-control-attribution {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        .leaflet-control-zoom {
+            background: #1e1e1e;
+        }
+        .leaflet-bar a {
+            color: #e0e0e0;
+            background: #1e1e1e;
+            border: none;
+        }
+        .disabled {
+            background: #555;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="coordinate-display" id="coordinate-display">X: , Z: </div>
+    <div class="marker-coordinate-display" id="marker-coordinate-display">X: , Z: </div>
+    <button class="guess-button disabled" id="guess-button" disabled>Guess</button>
+    <div class="result-display" id="result-display"></div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+    let map;
+    let guessMarker = null;
+    let polyline = null;
+    const targetLocation = { x: 100, y: -100 }; // Set your target coordinates here
+    
+    function initializeMap() {
+        map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -3,
+            maxZoom: 4
+        });
+
+        map.on('mousemove', function(e) {
+            const x = Math.round(e.latlng.lng);
+            const z = Math.round(e.latlng.lat);
+            coordDisplay.innerText = `X: ${x}, Z: ${-z}`;
+        });
+
+        map.on('click', function(e) {
+            if (guessMarker) {
+                map.removeLayer(guessMarker);
+            }
+            if (polyline) {
+                map.removeLayer(polyline);
+            }
+            
+            guessMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+            const guessCoords = guessMarker.getLatLng();
+            markerCoordDisplay.innerText = `X: ${Math.round(guessCoords.lng)}, Z: ${Math.round(-guessCoords.lat)}`;
+
+            guessButton.classList.remove('disabled');
+            guessButton.disabled = false;
+        });
+
+        map.on('zoomend', function() {
+            const zoomLevel = map.getZoom();
+            const imageLayer = document.querySelector('.leaflet-image-layer');
+            if (imageLayer) {
+                if (zoomLevel > 1) {
+                    imageLayer.classList.add('nearest-neighbor');
+                } else {
+                    imageLayer.classList.remove('nearest-neighbor');
+                }
+            }
+        });
+
+        return map;
+    }
+
+    function guessHandler() {
+        if (!guessMarker) return;
+
+        const guessCoords = guessMarker.getLatLng();
+        const dx = guessCoords.lng - targetLocation.x;
+        const dz = guessCoords.lat - targetLocation.y;
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        const score = Math.max(0, 100 - Math.floor(distance));
+
+        resultDisplay.innerText = `Score: ${score}`;
+
+        polyline = L.polyline([
+            [guessCoords.lat, guessCoords.lng],
+            [targetLocation.y, targetLocation.x]
+        ], {color: 'red'}).addTo(map);
+
+        // Reset for next guess
+        guessButton.classList.add('disabled');
+        guessButton.disabled = true;
+    }
+
+    window.onload = function() {
+        const mapElement = document.getElementById('map');
+        const coordDisplay = document.getElementById('coordinate-display');
+        const markerCoordDisplay = document.getElementById('marker-coordinate-display');
+        const resultDisplay = document.getElementById('result-display');
+        const guessButton = document.getElementById('guess-button');
+
+        map = initializeMap();
+        
+        // Load the map image first to get its dimensions
+        const img = new Image();
+        img.onload = function() {
+            const width = img.width;
+            const height = img.height;
+            
+            // Calculate bounds based on the actual image dimensions
+            // In Minecraft, each pixel represents one block, so we use a 1:1 scale
+            const bounds = [
+                [-height/2, -width/2],  // Top-left corner
+                [height/2, width/2]     // Bottom-right corner
+            ];
+            
+            const imageOverlay = L.imageOverlay('/map.png', bounds).addTo(map);
+            map.setView([0, 0], 0);
+            map.fitBounds(bounds);
+        };
+        img.src = '/map.png';
+        
+        guessButton.addEventListener('click', guessHandler);
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' && !guessButton.disabled) {
+                event.preventDefault();
+                guessButton.click();
+            }
+        });
+    };
+    </script>
+</body>
+</html>
