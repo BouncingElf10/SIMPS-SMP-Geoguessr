@@ -443,7 +443,7 @@ window.onload = async function() {
 			[height/2, width/2]
 		];
 		
-		const imageOverlay = L.imageOverlay('/map.png', bounds).addTo(map);
+		const imageOverlay = L.imageOverlay('https://bouncingelf10.github.io/SIMPS-SMP-Geoguessr/map.png', bounds).addTo(map);
 		map.setView([0, 0], 0);
 		map.fitBounds(bounds);
 	};
