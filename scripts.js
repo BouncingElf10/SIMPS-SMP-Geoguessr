@@ -447,7 +447,7 @@ window.onload = async function() {
 		map.setView([0, 0], 0);
 		map.fitBounds(bounds);
 	};
-	img.src = '/map.png';
+	img.src = 'https://bouncingelf10.github.io/SIMPS-SMP-Geoguessr/map.png';
 	
 	document.getElementById('guess-button').addEventListener('click', guessHandler);
 	document.getElementById('next-round-button').addEventListener('click', nextRound);
