@@ -293,6 +293,14 @@ body, html {
 .start-menu-content h1 {
 	margin-bottom: 20px;
 }
+.start-menu-content h2 {
+	font-size: 1.4em;
+	color: #3eed45;
+	background-color: #1f3d20;
+	border-radius: 10px;
+	padding: 15px;
+	display: none;
+}
 .start-menu-content a {
 	color: #4CAF50;
 	text-decoration: none;
@@ -535,4 +543,98 @@ body, html {
 	text-align: center;
 	font-size: 0.8em;
 	color: #fff;
+}
+
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    .social-media-links,
+	.title {
+        display: none;
+    }
+    .content-container {
+        margin-top: 0;
+    }
+    .container {
+        height: 90vh;
+    }
+	.game-stats,
+    .timer-display {
+        font-size: 0.8em;
+        padding: 3px 7px;
+    }
+
+    .coordinate-display {
+        font-size: 0.8em;
+        padding: 3px 7px;
+    }
+
+    .guess-button,
+    .next-round-button {
+        font-size: 0.8em;
+        padding: 3px 10px;
+    }
+
+    .result-display {
+        font-size: 0.8em;
+        padding: 3px 7px;
+    }
+
+    #leaderboard-button,
+    #new-game-button,
+    #credits-button {
+        font-size: 0.8em;
+        padding: 2px 5px;
+    }
+
+    .credits-content h2 {
+        font-size: 1.2em;
+        margin: 5px 0;
+    }
+
+    .credits-content p {
+        font-size: 0.8em;
+        margin: 10px 0;
+    }
+
+    .final-score-content h2 {
+        font-size: 1.2em;
+    }
+
+    .final-score-content p {
+        font-size: 0.8em;
+    }
+
+    .play-again-button {
+        font-size: 0.8em;
+        padding: 5px 10px;
+        margin-top: 10px;
+    }
+
+    .start-menu-content h1 {
+        font-size: 1.2em;
+    }
+
+    .start-menu-content p {
+        font-size: 0.8em;
+    }
+
+    .start-game-button {
+        font-size: 0.8em;
+        padding: 5px 10px;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+	.title {
+        font-size: 3.5em;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+	.start-menu-content h2 {
+		display: block;
+	}
+	
+	.coordinate-display {
+        display: none;
+    }
 }
