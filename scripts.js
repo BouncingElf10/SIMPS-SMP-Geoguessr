@@ -237,20 +237,23 @@ function resetMap() {
 	document.getElementById('result-display').innerText = '';
 }
 
+const numImages = 228;
+
 async function loadRandomImage() {
 	try {
 		const response = await fetch('base.json');
 		const data = await response.json();
 		
-		let availableIds = Array.from({length: 91}, (_, i) => i + 1)
+		let availableIds = Array.from({length: numImages}, (_, i) => i + 1)
 			.filter(id => !usedImageIds.has(id));
 		
 		if (availableIds.length === 0) {
-			availableIds = Array.from({length: 91}, (_, i) => i + 1);
+			availableIds = Array.from({length: numImages}, (_, i) => i + 1);
 			usedImageIds.clear();
 		}
 		
 		const randomId = availableIds[Math.floor(Math.random() * availableIds.length)];
+		console.log(randomId)
 		usedImageIds.add(randomId);
 		
 		currentImageData = data.find(item => item.id === randomId);
@@ -283,43 +286,60 @@ function guessHandler() {
 	const dz = guessZ - targetZ;
 	const distance = Math.sqrt(dx * dx + dz * dz);
 
-	let score;
+	var score;
 	if (distance <= 10) {
 		score = 100;
 	} else {
-		score = Math.max(0, Math.floor(100 - distance));
+		score = Math.max(0, Math.floor(100 - (distance)));
 	}
 
 	scores.push(score);
 
-	document.getElementById('result-display').innerText =
+	document.getElementById('result-display').innerText = 
 		`Score: ${score}\nDistance: ${Math.round(distance)} blocks`;
 
 	const mapTargetX = targetX - (1491 + 45);
 	const mapTargetZ = -(targetZ - (9047 - 88));
 
-	if (actualMarker) map.removeLayer(actualMarker);
-	actualMarker = L.marker([mapTargetZ, mapTargetX], {
+	// Store the current guess and actual location with round-specific color
+	const roundColor = roundColors[currentRound - 1];
+
+	historicalGuesses.push(L.marker([guessCoords.lat, guessCoords.lng], {
 		icon: L.divIcon({
-			className: 'actual-location-marker',
+			className: 'historical-guess-marker',
+			html: '🔍',
+			iconSize: [20, 20],
+			iconAnchor: [10, 10]
+		})
+	}));
+
+	historicalActuals.push(L.marker([mapTargetZ, mapTargetX], {
+		icon: L.divIcon({
+			className: 'historical-actual-marker',
 			html: '📍',
 			iconSize: [20, 20],
 			iconAnchor: [10, 20]
 		})
-	}).addTo(map);
+	}));
 
-	if (polyline) map.removeLayer(polyline);
-	polyline = L.polyline([
+	historicalPolylines.push(L.polyline([
 		[guessCoords.lat, guessCoords.lng],
 		[mapTargetZ, mapTargetX]
-	], { color: 'red', weight: 2 }).addTo(map);
+	], {color: roundColor, weight: 3, opacity: 0.8}));
 
-	const bounds = L.latLngBounds(
-		[guessCoords, [mapTargetZ, mapTargetX]]
-	);
-	map.fitBounds(bounds, {
-		padding: [50, 50] // Add some padding to the bounds
-	});
+	// If it's the final round, show all historical markers
+	if (currentRound === TOTAL_ROUNDS) {
+		historicalGuesses.forEach(marker => marker.addTo(map));
+		historicalActuals.forEach(marker => marker.addTo(map));
+		historicalPolylines.forEach(line => line.addTo(map));
+	} else {
+		// For non-final rounds, just show the current guess
+		if (polyline) map.removeLayer(polyline);
+		polyline = historicalPolylines[historicalPolylines.length - 1].addTo(map);
+		
+		if (actualMarker) map.removeLayer(actualMarker);
+		actualMarker = historicalActuals[historicalActuals.length - 1].addTo(map);
+	}
 
 	const guessButton = document.getElementById('guess-button');
 	guessButton.classList.add('disabled');

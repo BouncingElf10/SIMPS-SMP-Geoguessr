@@ -946,32 +946,32 @@
             }
         }
 
-        function guessHandler() {
+		function guessHandler() {
 			stopCountdown();
-			
+
 			if (!guessMarker || !currentImageData || hasGuessedThisRound) return;
-			
+
 			hasGuessedThisRound = true;
 
 			const guessCoords = guessMarker.getLatLng();
-			
+
 			const guessX = Math.round(guessCoords.lng + (1491 + 45));
 			const guessZ = Math.round(-guessCoords.lat + (9047 - 88));
-			
+
 			const targetX = currentImageData.coords.x;
 			const targetZ = currentImageData.coords.y;
-			
+
 			const dx = guessX - targetX;
 			const dz = guessZ - targetZ;
 			const distance = Math.sqrt(dx * dx + dz * dz);
-			
+
 			var score;
 			if (distance <= 10) {
 				score = 100;
 			} else {
 				score = Math.max(0, Math.floor(100 - (distance)));
 			}
-			
+
 			scores.push(score);
 
 			document.getElementById('result-display').innerText = 
@@ -982,7 +982,7 @@
 
 			// Store the current guess and actual location with round-specific color
 			const roundColor = roundColors[currentRound - 1];
-			
+
 			historicalGuesses.push(L.marker([guessCoords.lat, guessCoords.lng], {
 				icon: L.divIcon({
 					className: 'historical-guess-marker',
@@ -991,7 +991,7 @@
 					iconAnchor: [10, 10]
 				})
 			}));
-			
+
 			historicalActuals.push(L.marker([mapTargetZ, mapTargetX], {
 				icon: L.divIcon({
 					className: 'historical-actual-marker',
@@ -1000,7 +1000,7 @@
 					iconAnchor: [10, 20]
 				})
 			}));
-			
+
 			historicalPolylines.push(L.polyline([
 				[guessCoords.lat, guessCoords.lng],
 				[mapTargetZ, mapTargetX]
