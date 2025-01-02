@@ -253,7 +253,6 @@ async function loadRandomImage() {
 		}
 		
 		const randomId = availableIds[Math.floor(Math.random() * availableIds.length)];
-		console.log(randomId)
 		usedImageIds.add(randomId);
 		
 		currentImageData = data.find(item => item.id === randomId);
@@ -301,7 +300,6 @@ function guessHandler() {
 	const mapTargetX = targetX - (1491 + 45);
 	const mapTargetZ = -(targetZ - (9047 - 88));
 
-	// Store the current guess and actual location with round-specific color
 	const roundColor = roundColors[currentRound - 1];
 
 	historicalGuesses.push(L.marker([guessCoords.lat, guessCoords.lng], {
@@ -321,19 +319,24 @@ function guessHandler() {
 			iconAnchor: [10, 20]
 		})
 	}));
+	
+	const bounds = L.latLngBounds(
+		[guessCoords, [mapTargetZ, mapTargetX]]
+	);
+	map.fitBounds(bounds, {
+		padding: [50, 50]
+	});
 
 	historicalPolylines.push(L.polyline([
 		[guessCoords.lat, guessCoords.lng],
 		[mapTargetZ, mapTargetX]
 	], {color: roundColor, weight: 3, opacity: 0.8}));
 
-	// If it's the final round, show all historical markers
 	if (currentRound === TOTAL_ROUNDS) {
 		historicalGuesses.forEach(marker => marker.addTo(map));
 		historicalActuals.forEach(marker => marker.addTo(map));
 		historicalPolylines.forEach(line => line.addTo(map));
 	} else {
-		// For non-final rounds, just show the current guess
 		if (polyline) map.removeLayer(polyline);
 		polyline = historicalPolylines[historicalPolylines.length - 1].addTo(map);
 		
