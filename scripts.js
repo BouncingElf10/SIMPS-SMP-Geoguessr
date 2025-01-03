@@ -130,7 +130,7 @@ function showFinalScore() {
 	document.getElementById('final-score-text').innerHTML = 
 		`Total Points: ${totalScore} points<br>
 		Total Time: ${seconds}.${milliseconds} seconds<br>
-		Total Score: ${Math.round(totalMix*100)/100}<br><br>
+		Total Score: ${Math.round(totalMix*10000)/10000}<br><br>
 		${scoreBreakdown.replace(/\n/g, '<br>')}`;
 
 	document.getElementById('final-score-overlay').style.display = 'flex';
