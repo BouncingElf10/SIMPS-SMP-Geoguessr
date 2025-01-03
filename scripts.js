@@ -128,9 +128,9 @@ function showFinalScore() {
 	}).join('\n');
 
 	document.getElementById('final-score-text').innerHTML = 
-		`Total Score: ${totalScore} points<br>
+		`Total Points: ${totalScore} points<br>
 		Total Time: ${seconds}.${milliseconds} seconds<br>
-		Total Tally: ${Math.round(totalMix*100)/100}<br><br>
+		Total Score: ${Math.round(totalMix*100)/100}<br><br>
 		${scoreBreakdown.replace(/\n/g, '<br>')}`;
 
 	document.getElementById('final-score-overlay').style.display = 'flex';

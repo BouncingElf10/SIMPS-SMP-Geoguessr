@@ -639,7 +639,7 @@ body, html {
     }
 }
 
-@media (max-height: 585px) {
+@media (max-height: 645px) {
     #credits-button,
     #new-game-button {
         display: none;
