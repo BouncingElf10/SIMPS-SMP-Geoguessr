@@ -54,18 +54,18 @@
     </div>
 	
 	<div id="button-container">
-		<!-- <button id="leaderboard-button" onclick="showLeaderboard()">Leaderboard</button> -->
+		<button id="leaderboard-button" onclick="showLeaderboard()">Personal Best</button>
 		<button id="new-game-button" onclick="startNewGame()">New Game</button>
 	</div>
 
-	<!--
+	
 	<div id="leaderboard-popup" class="credits-popup">
 		<div class="credits-content">
-			<h2>Leaderboard</h2>
+			<h2>Personal Best</h2>
 			<table id="leaderboard-table" style="width: 100%; border-collapse: collapse; text-align: left;">
 				<thead>
 					<tr>
-						<th onclick="sortLeaderboard('name')">Name <span id="sort-indicator-name"> </span></th>
+						<th>Rank</th>
 						<th onclick="sortLeaderboard('score')">Score <span id="sort-indicator-score"> </span></th>
 						<th onclick="sortLeaderboard('time')">Time <span id="sort-indicator-time"> </span></th>
 						<th onclick="sortLeaderboard('mix')">Mix <span id="sort-indicator-mix">▼</span></th>
@@ -73,26 +73,30 @@
 					</tr>
 				</thead>
 				<tbody id="leaderboard-content">
-				
 				</tbody>
 			</table>
-
-			<button class="credits-close-button" onclick="closeLeaderboard()">Close</button>
+				<button class="credits-close-button" onclick="closeLeaderboard()">Close</button>
+				<button id="reset-pb-button" onclick="resetPB()">Reset All</button>
 		</div>
 	</div>
-	-->
+	
+	<div class="confirm-popup" id="confirm-popup">
+		<div class="confirm-content">
+			<h2>Are you sure?</h2>
+			<p>This will permanently delete all your personal best records. This action cannot be undone.</p>
+			<div class="confirm-buttons">
+				<button class="confirm-no" onclick="closeConfirmPopup()">Cancel</button>
+				<button class="confirm-yes" onclick="confirmReset()">Yes, Delete All</button>
+			</div>
+		</div>
+	</div>
+
 
     <!-- Final Score Overlay -->
    <div class="final-score-overlay" id="final-score-overlay">
 		<div class="final-score-content">
 			<h2>Game Complete!</h2>
 			<p id="final-score-text"></p>
-			<!--
-			<div style="display: flex; align-items: center; gap: 10px;">
-				<input type="text" id="player-name" placeholder="Your Name" required>
-				<button class="submit-score-button" id="submit-score-button" onclick="submitFinalScore()">Submit Score</button>
-			</div>
-			-->
 			<button class="play-again-button" onclick="startNewGame()">Play Again</button>
 		</div>
 	</div>

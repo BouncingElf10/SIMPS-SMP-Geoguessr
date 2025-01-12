@@ -71,6 +71,7 @@ body, html {
 .left-half,
 .right-half {
 	width: calc(51% - 1px);
+	width: calc(51% - 1px);
 	height: 100%;
 	display: flex;
 	justify-content: center;
@@ -410,10 +411,12 @@ body, html {
 }
 
 .credits-content h2 {
-	margin-top: 0;
-	font-size: 2em;
-	font-family: "Oxanium", serif;
-	font-weight: 600;
+    margin-top: 0;
+    font-size: 2.5em;
+    font-family: "Oxanium", serif;
+    font-weight: 600;
+    margin-block-end: 0em;
+    margin-block-start: 0em;
 }
 
 .credits-content p {
@@ -433,6 +436,7 @@ body, html {
 	text-decoration: underline;
 }
 
+#reset-pb-button,
 .credits-close-button {
 	background: #4CAF50;
 	border: none;
@@ -448,8 +452,22 @@ body, html {
 	align-items: center; 
 	justify-content: center;
 	text-align: center;
+	bottom: 10px;
 }
 
+.credits-content {
+    position: relative;
+}
+
+#reset-pb-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+#reset-pb-button {
+	background: #db3c30;
+}
 
 #credits-button {
 	background: #1e1e1e;
@@ -470,11 +488,11 @@ body, html {
 	display: flex;
 	justify-content: center; 
 	align-items: center; 
-	gap: 0px; 
+	gap: 20px; 
 	position: fixed;
 	bottom: -2px; 
 	left: 50%; 
-	transform: translate(-50%, -50%); 
+	transform: translate(-55%, -50%); 
 	display: inline-flex; 
 	align-items: center;
 	justify-content: center; 
@@ -543,6 +561,60 @@ body, html {
 	text-align: center;
 	font-size: 0.8em;
 	color: #fff;
+}
+
+.confirm-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.99);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.confirm-content {
+    background-color: #363636;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    margin: 20px;
+}
+
+.confirm-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.confirm-buttons button {
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+}
+
+.confirm-yes {
+    background-color: #ff4444;
+    color: white;
+}
+
+.confirm-no {
+    background-color: #666;
+    color: white;
+}
+
+.confirm-content,
+.confirm-buttons,
+.confirm-yes,
+.confirm-no {
+	font-family: "Oxanium", serif;
+	font-weight: 600;
+	color: white;
 }
 
 @media screen and (max-height: 500px) and (orientation: landscape) {
@@ -623,7 +695,7 @@ body, html {
     }
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 1210px) {
 	.title {
         font-size: 3.5em;
     }
@@ -640,7 +712,8 @@ body, html {
 }
 
 @media (max-height: 645px) {
-    #credits-button,
+    #leaderboard-button,
+	#credits-button,
     #new-game-button {
         display: none;
     }

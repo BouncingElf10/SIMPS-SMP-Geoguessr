@@ -112,30 +112,33 @@ function updateGameStats() {
 }
 
 function showFinalScore() {
-	resetMap();
-	const totalScore = scores.reduce((sum, score) => sum + score, 0);
-	const totalTime = roundTimes.reduce((sum, time) => sum + time, 0);
+    resetMap();
+    const totalScore = scores.reduce((sum, score) => sum + score, 0);
+    const totalTime = roundTimes.reduce((sum, time) => sum + time, 0);
 
-	const seconds = Math.floor(totalTime / 1000);
-	const milliseconds = (totalTime % 1000).toString().padStart(3, '0');
-	
-	const totalMix = totalScore / (totalTime / 1000);
-	
-	let scoreBreakdown = scores.map((score, index) => {
-		const roundTimeSeconds = Math.floor(roundTimes[index] / 1000);
-		const roundTimeMilliseconds = (roundTimes[index] % 1000).toString().padStart(3, '0');
-		return `Round ${index + 1}: ${score} points (${roundTimeSeconds}.${roundTimeMilliseconds} seconds)`;
-	}).join('\n');
+    const seconds = Math.floor(totalTime / 1000);
+    const milliseconds = (totalTime % 1000).toString().padStart(3, '0');
+    
+    const totalMix = totalScore / (totalTime / 1000);
+    
+    let scoreBreakdown = scores.map((score, index) => {
+        const roundTimeSeconds = Math.floor(roundTimes[index] / 1000);
+        const roundTimeMilliseconds = (roundTimes[index] % 1000).toString().padStart(3, '0');
+        return `Round ${index + 1}: ${score} points (${roundTimeSeconds}.${roundTimeMilliseconds} seconds)`;
+    }).join('\n');
 
-	document.getElementById('final-score-text').innerHTML = 
-		`Total Points: ${totalScore} points<br>
-		Total Time: ${seconds}.${milliseconds} seconds<br>
-		Total Score: ${Math.round(totalMix*10000)/10000}<br><br>
-		${scoreBreakdown.replace(/\n/g, '<br>')}`;
+    document.getElementById('final-score-text').innerHTML = 
+        `Total Score: ${totalScore} points<br>
+        Total Time: ${seconds}.${milliseconds} seconds<br>
+        Total Tally: ${Math.round(totalMix*100)/100}<br><br>
+        ${scoreBreakdown.replace(/\n/g, '<br>')}`;
 
-	document.getElementById('final-score-overlay').style.display = 'flex';
+    document.getElementById('final-score-overlay').style.display = 'flex';
+    
+    // Automatically save score
+    updateLeaderboard(totalScore, totalTime);
 }
-/*
+
 function resetScoreSubmition() {
 	const playerNameInput = document.getElementById('player-name');
 	const submitButton = document.getElementById('submit-score-button');
@@ -181,9 +184,8 @@ function submitFinalScore() {
 	submitButton.classList.add('disabled');
 	submitButton.textContent = 'Submitted';
 }
-*/
+
 function startNewGame() {
-	//resetScoreSubmition();
 	startCountdown();
 	currentRound = 1;
 	totalTime = 0;
@@ -361,6 +363,22 @@ function guessHandler() {
 	}
 }
 
+function resetPB() {
+    document.getElementById('confirm-popup').style.display = 'flex';
+	closeLeaderboard();
+}
+
+function closeConfirmPopup() {
+    document.getElementById('confirm-popup').style.display = 'none';
+}
+
+function confirmReset() {
+    localStorage.clear();
+    closeConfirmPopup();
+    closeLeaderboard();
+}
+
+
 
 function nextRound() {
 	startCountdown();
@@ -495,122 +513,118 @@ window.onload = async function() {
 	updateGameStats();
 	updateCountdownDisplay();
 };
-/*
+
 async function fetchLeaderboard() {
-	try {
-		const response = await fetch('leaderboard.json');
-		return await response.json();
-	} catch (error) {
-		console.error('Error fetching leaderboard:', error);
-		return [];
-	}
+    try {
+        const storedScores = localStorage.getItem('gameScores');
+        return storedScores ? JSON.parse(storedScores) : [];
+    } catch (error) {
+        console.error('Error fetching scores from LocalStorage:', error);
+        return [];
+    }
 }
 
-async function updateLeaderboard(playerName, score, time) {
-	try {
-		const leaderboard = await fetchLeaderboard();
-		
-		const mix = score / (time / 1000);
-		const date = new Date().toISOString();
+async function updateLeaderboard(score, time) {
+    try {
+        const scores = await fetchLeaderboard();
+        
+        const mix = score / (time / 1000);
+        const date = new Date().toISOString();
 
-		const newEntry = {
-			name: playerName,
-			score,
-			time: `${Math.floor(time / 1000)}.${time % 1000} seconds`,
-			mix: parseFloat(mix.toFixed(2)),
-			date
-		};
-		
-		if (leaderboard.length >= 1000) {
-			const worstEntry = leaderboard.reduce((min, entry) => 
-				parseFloat(entry.mix) < parseFloat(min.mix) ? entry : min
-			);
-			
-			if (newEntry.mix <= parseFloat(worstEntry.mix)) {
-				alert('Sorry! Your score isn\'t high enough to make it onto the leaderboard.');
-				return false;
-			}
-			
-			const worstIndex = leaderboard.findIndex(entry => 
-				entry.mix === worstEntry.mix && entry.date === worstEntry.date
-			);
-			if (worstIndex !== -1) {
-				leaderboard.splice(worstIndex, 1);
-			}
-		}
+        const newEntry = {
+            score,
+            time: `${Math.floor(time / 1000)}.${time % 1000} seconds`,
+            mix: parseFloat(mix.toFixed(2)),
+            date
+        };
+        
+        if (scores.length >= 1000) {
+            const worstEntry = scores.reduce((min, entry) => 
+                parseFloat(entry.mix) < parseFloat(min.mix) ? entry : min
+            );
+            
+            if (newEntry.mix <= parseFloat(worstEntry.mix)) {
+                alert('This score isn\'t high enough to make it onto the leaderboard!');
+                return false;
+            }
+            
+            const worstIndex = scores.findIndex(entry => 
+                entry.mix === worstEntry.mix && entry.date === worstEntry.date
+            );
+            if (worstIndex !== -1) {
+                scores.splice(worstIndex, 1);
+            }
+        }
 
-		leaderboard.push(newEntry);
-
-		leaderboard.sort((a, b) => parseFloat(b.mix) - parseFloat(a.mix));
-		
-		const response = await fetch('http://localhost:8000/leaderboard.json', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(leaderboard),
-		});
-
-		if (!response.ok) {
-			throw new Error('Failed to update leaderboard');
-		}
-		console.log('Leaderboard updated successfully');
-		return true;
-	} catch (error) {
-		console.error('Error updating leaderboard:', error);
-		return false;
-	}
+        scores.push(newEntry);
+        scores.sort((a, b) => parseFloat(b.mix) - parseFloat(a.mix));
+        
+        localStorage.setItem('gameScores', JSON.stringify(scores));
+        return true;
+    } catch (error) {
+        console.error('Error updating scores:', error);
+        return false;
+    }
 }
 
 async function showLeaderboard() {
-	try {
-		const leaderboard = await fetchLeaderboard();
-		console.log("Fetched leaderboard:", leaderboard);
-
-		const sortedEntries = sortLeaderboardData(leaderboard, currentSortColumn, sortAscending)
-			.slice(0, 10);
-		
-		console.log("Sorted entries:", sortedEntries);
-			
-		const leaderboardContent = document.getElementById('leaderboard-content');
-		leaderboardContent.innerHTML = sortedEntries
-			.map(entry => `
-				<tr>
-					<td>${entry.name}</td>
-					<td>${entry.score}</td>
-					<td>${entry.time}</td>
-					<td>${entry.mix}</td>
-					<td>${new Date(entry.date).toLocaleDateString()}</td>
-				</tr>
-			`)
-			.join('');
-			
-		const leaderboardPopup = document.getElementById('leaderboard-popup');
-		leaderboardPopup.style.display = 'flex';
-		
-	} catch (error) {
-		console.error('Error showing leaderboard:', error);
-	}
+    try {
+        const scores = await fetchLeaderboard();
+        const sortedEntries = sortLeaderboardData(scores, currentSortColumn, sortAscending)
+            .slice(0, 10);
+        
+        const leaderboardContent = document.getElementById('leaderboard-content');
+        leaderboardContent.innerHTML = sortedEntries
+            .map((entry, index) => `
+                <tr>
+                    <td>#${index + 1}</td>
+                    <td>${entry.score}</td>
+                    <td>${entry.time}</td>
+                    <td>${entry.mix}</td>
+                    <td>${formatDate(entry.date)}</td>
+                </tr>
+            `)
+            .join('');
+            
+        const leaderboardPopup = document.getElementById('leaderboard-popup');
+        leaderboardPopup.style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error showing leaderboard:', error);
+    }
 }
 
-function sortLeaderboardData(leaderboard, column, ascending) {
-	return [...leaderboard].sort((a, b) => {
-		if (column === 'name') {
-			return ascending
-				? a.name.localeCompare(b.name)
-				: b.name.localeCompare(a.name);
-		} else if (column === 'date') {
-			return ascending
-				? new Date(a.date) - new Date(b.date)
-				: new Date(b.date) - new Date(a.date);
-		} else if (column === 'time') {
-			const timeA = parseFloat(a.time.split(' ')[0]);
-			const timeB = parseFloat(b.time.split(' ')[0]);
-			return ascending ? timeA - timeB : timeB - timeA;
-		} else {
-			return ascending 
-				? parseFloat(a[column]) - parseFloat(b[column])
-				: parseFloat(b[column]) - parseFloat(a[column]);
-		}
-	});
+function formatDate(dateString) {
+    const date = new Date(dateString);
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const year = date.getFullYear();
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
+
+function sortLeaderboardData(scores, column, ascending) {
+    return [...scores].sort((a, b) => {
+        if (column === 'date') {
+            return ascending
+                ? new Date(a.date) - new Date(b.date)
+                : new Date(b.date) - new Date(a.date);
+        } else if (column === 'time') {
+            const timeA = parseFloat(a.time.split(' ')[0]);
+            const timeB = parseFloat(b.time.split(' ')[0]);
+            return ascending ? timeA - timeB : timeB - timeA;
+        } else {
+            return ascending 
+                ? parseFloat(a[column]) - parseFloat(b[column])
+                : parseFloat(b[column]) - parseFloat(a[column]);
+        }
+    });
 }
 
 
@@ -618,63 +632,51 @@ let currentSortColumn = 'mix';
 let sortAscending = false;
 
 function sortLeaderboard(column) {
-	fetchLeaderboard().then(leaderboard => {
-		if (currentSortColumn === column) {
-			sortAscending = !sortAscending;
-		} else {
-			currentSortColumn = column;
-			sortAscending = true;
-		}
+    fetchLeaderboard().then(scores => {
+        if (currentSortColumn === column) {
+            sortAscending = !sortAscending;
+        } else {
+            currentSortColumn = column;
+            sortAscending = true;
+        }
 
-		const sortedLeaderboard = leaderboard.sort((a, b) => {
-			if (column === 'name') {
-				return sortAscending
-					? a.name.localeCompare(b.name)
-					: b.name.localeCompare(a.name);
-			} else if (column === 'date') {
-				return sortAscending
-					? new Date(a.date) - new Date(b.date)
-					: new Date(b.date) - new Date(a.date);
-			} else if (column === 'time') {
-				const timeA = parseFloat(a.time.split(' ')[0]); 
-				const timeB = parseFloat(b.time.split(' ')[0]);
-				return sortAscending ? timeA - timeB : timeB - timeA;
-			} else {
-				return sortAscending ? a[column] - b[column] : b[column] - a[column];
-			}
-		});
+        const sortedScores = sortLeaderboardData(scores, column, sortAscending);
+        const top10 = sortedScores.slice(0, 10);
 
-		const top10 = sortedLeaderboard.slice(0, 10);
+        const leaderboardContent = document.getElementById('leaderboard-content');
+        leaderboardContent.innerHTML = top10
+            .map((entry, index) => `
+                <tr>
+                    <td>#${index + 1}</td>
+                    <td>${entry.score}</td>
+                    <td>${entry.time}</td>
+                    <td>${entry.mix}</td>
+                    <td>${formatDate(entry.date)}</td>
+                </tr>
+            `)
+            .join('');
 
-		const leaderboardContent = document.getElementById('leaderboard-content');
-		leaderboardContent.innerHTML = top10
-			.map(entry => `
-				<tr>
-					<td>${entry.name}</td>
-					<td>${entry.score}</td>
-					<td>${entry.time}</td>
-					<td>${entry.mix}</td>
-					<td>${new Date(entry.date).toLocaleDateString()}</td>
-				</tr>
-			`)
-			.join('');
-
-		updateSortIndicators(column, sortAscending);
-	});
-}
-
-function updateSortIndicators(column, ascending) {
-	['name', 'score', 'time', 'mix', 'date'].forEach(col => {
-		document.getElementById(`sort-indicator-${col}`).textContent = '';
-	});
-
-	const indicator = ascending ? '▲' : '▼';
-	document.getElementById(`sort-indicator-${column}`).textContent = indicator;
+        updateSortIndicators(column);
+    });
 }
 
 
+function updateSortIndicators(column) {
+    const columns = ['score', 'time', 'mix', 'date'];
+    
+    columns.forEach(col => {
+        const indicator = document.getElementById(`sort-indicator-${col}`);
+        if (indicator) {
+            indicator.textContent = ' ';
+        }
+    });
+
+    const indicator = document.getElementById(`sort-indicator-${column}`);
+    if (indicator) {
+        indicator.textContent = sortAscending ? '▲' : '▼';
+    }
+}
 
 function closeLeaderboard() {
 	document.getElementById('leaderboard-popup').style.display = 'none';
 }
-*/
